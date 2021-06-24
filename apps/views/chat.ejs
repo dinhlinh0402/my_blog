@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font: 13px helvetica, arial;
+        }
+
+        form {
+            background: #000;
+            padding: 2px;
+            position: fixed;
+            bottom: 10px;
+            width: 72%;
+        }
+
+        form input {
+            border: 0;
+            padding: 10px 10px;
+            width: 85%;
+            margin-right: 20px;
+            /* padding-top:20px */
+            /* margin-bottom:10px; */
+        }
+
+        form button {
+            width: 10%;
+            
+        }
+
+        #conversation {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            border: 1px solid gray;
+        }
+
+        #conversation li {
+            padding: 5px 10px;
+        }
+
+        #conversation li:nth-child(odd) {
+            background: #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <ul id="conversation">
+
+        </ul>
+
+        <form>
+            <input type="text" name="message" id="message" placeholder="Aa">
+            <button class="btn btn-success" id="btn_send">Send</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
+    <script>
+        var socket = io.connect('http://localhost:3000');
+        // on: lắng nghe sự kiện
+        socket.on('connect', function() {
+            console.log('User is connecting to server');
+
+            // Ask name 
+            var username = prompt("What is your name??");
+
+            // Notify to server
+            //emit: Thông báo, gửi đi cái gì đấy, adduser: sự kiện
+            socket.emit('adduser', username);
+        });
+
+        // Listen uodate_message events
+        socket.on('update_message', function(data) {
+            $('#conversation').append('<li> <b>' + data.sender + ': </b> ' + data.message + '</li>');
+        });
+
+        // Send message Event
+        $('#btn_send').click(function(e) {
+            // Get message
+            var message = $('#message').val();
+            $('#message').val('');
+
+            if(message.trim().length !=0){
+                socket.emit('send_message', message);
+            }
+        });
+
+        $('form').submit(function() {
+            return false;
+        });
+
+        // Click enter
+        $('#message').keypress(function(e) {
+            // Enter event
+            if(e.which == 13) {
+                $('#btn_send').trigger('click');
+            }
+        });
+    </script>
+</body>
+</html>
